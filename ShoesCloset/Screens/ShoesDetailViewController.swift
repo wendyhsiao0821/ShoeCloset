@@ -12,7 +12,7 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
     
     @IBOutlet var logTableView: UITableView!
     @IBOutlet var shoePhotoImageView: UIImageView!
-    
+    ///frhufhrufhurfh
     var logArray: [Log] = []
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
