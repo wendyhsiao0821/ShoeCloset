@@ -15,8 +15,12 @@ class AddNewShoesViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet var colorwayTextField: UITextField!
     @IBOutlet var purchaseDate: UIDatePicker!
     
+    @IBOutlet var editShoeTitleLabel: UILabel!
+    
+    @IBOutlet var imagePickerButton: UIButton!
     @IBOutlet var addShoePhotoImageView: UIImageView!
     
+    @IBOutlet var saveButton: UIButton!
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var activeField: UITextField?
     let imagePicker = UIImagePickerController()
@@ -33,10 +37,27 @@ class AddNewShoesViewController: UIViewController, UITextFieldDelegate {
         addShoePhotoImageView.layer.borderWidth = 0.8
         addShoePhotoImageView.layer.borderColor = UIColor.gray.cgColor
         addShoePhotoImageView.layer.cornerRadius = 8
-
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            if self.brandTextField.text != "" {
+//                self.saveButton.setTitle("cool", for: .normal)
+//            }
+//        }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+               self.checkBrandTextField()
+           }
+    }
 
+    func checkBrandTextField() {
+        if let text = brandTextField.text, !text.isEmpty {
+            saveButton.setTitle("Update data", for: .normal)
+            imagePickerButton.setTitle("Edit photo", for: .normal)
+        }
+    }
     
     //MARK: - Keyboard Show and Dismiss
     
@@ -69,6 +90,7 @@ class AddNewShoesViewController: UIViewController, UITextFieldDelegate {
             newItem.series = seriesTextField.text
             newItem.colorway = colorwayTextField.text
             newItem.purchaseDate = purchaseDate.date
+            newItem.id = UUID()
             
 //            guard let imageData = addShoePhotoImageView.image?.jpegData(compressionQuality: 1.0) else {
 //                print("no image data")

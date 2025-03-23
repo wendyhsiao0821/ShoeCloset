@@ -53,11 +53,6 @@
 			path = ShoesClosetTests;
 			sourceTree = "<group>";
 		};
-		A9923CAE2D37BB0500B30FA5 /* ShoesClosetUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ShoesClosetUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,7 +85,6 @@
 			children = (
 				A9923C8A2D37BB0400B30FA5 /* ShoesCloset */,
 				A9923CA42D37BB0500B30FA5 /* ShoesClosetTests */,
-				A9923CAE2D37BB0500B30FA5 /* ShoesClosetUITests */,
 				A9923C892D37BB0400B30FA5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -165,9 +159,6 @@
 			);
 			dependencies = (
 				A9923CAD2D37BB0500B30FA5 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				A9923CAE2D37BB0500B30FA5 /* ShoesClosetUITests */,
 			);
 			name = ShoesClosetUITests;
 			packageProductDependencies = (

@@ -10,7 +10,6 @@ import CoreData
 
 class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
-    @IBOutlet var topNavigator: UINavigationBar!
     @IBOutlet var logTableView: UITableView!
     @IBOutlet var shoePhotoImageView: UIImageView!
     
@@ -22,8 +21,9 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
     var detailSeries: String? = "default series"
     var detailColorway: String? = "default colorway"
     var detailPurchaseDate: String? = "default date"
+    var editPurchaseDate: Date? = Date()
     let imagePicker = UIImagePickerController()
-    var shoeImage: UIImage? = UIImage(named: "shoe1")
+    var shoeImage: UIImage? = UIImage(named: "defaultShoe")
     
     var selectedItem : Item? {
         didSet{
@@ -40,15 +40,28 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
     override func viewDidLoad() {
         super.viewDidLoad()
         logTableView.isScrollEnabled = true
-        topNavigator.topItem?.title = detailTitle
+        title = detailTitle
         
         shoePhotoImageView.layer.borderWidth = 0.8
         shoePhotoImageView.layer.borderColor = UIColor.gray.cgColor
         shoePhotoImageView.layer.cornerRadius = 8
         shoePhotoImageView.image = shoeImage
-     
         
-//        topNavigator.topItem?.rightBarButtonItem?.action = #selector(closeDetailModal(_:))
+        view.backgroundColor = .white
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+                    title: "Done",
+                    style: .done,
+                    target: self,
+                    action: #selector(dismissModal)
+                    )
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+                    title: "Edit",
+                    style: .done,
+                    target: self,
+                    action: #selector(performEditShoeSegue)
+                    )
+
         
         brandLabel.text = detailBrand
         seriesLabel.text = detailSeries
@@ -69,7 +82,27 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
 
+    @objc func dismissModal() {
+            dismiss(animated: true, completion: nil)
+        }
     
+    @objc func performEditShoeSegue() {
+//        performSegue(withIdentifier: "editShoeSegue", sender: self)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let destinationVC = storyboard.instantiateViewController(withIdentifier: "AddNewShoesViewController") as? AddNewShoesViewController {
+            present(destinationVC, animated: true, completion: nil)
+            
+            destinationVC.brandTextField.text = detailBrand
+            destinationVC.seriesTextField.text = detailSeries
+            destinationVC.colorwayTextField.text = detailColorway
+            destinationVC.purchaseDate.date = editPurchaseDate ?? Date()
+            destinationVC.addShoePhotoImageView.image = shoeImage
+            destinationVC.editShoeTitleLabel.text = detailTitle
+            
+//            destinationVC.saveButton.setTitle("cool", for: .normal)
+            
+        }
+    }
      
     
     //MARK: TABLE VIEW PART -
@@ -177,7 +210,7 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
         
         let ItemPredicate = NSPredicate(format: "parentItem.shoeTitle MATCHES %@", selectedItem!.shoeTitle!)
         
-
+        
         if let addtionalPredicate = predicate {
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [ItemPredicate, addtionalPredicate])
         } else {
@@ -196,29 +229,3 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
 
 }
 
-//MARK: UIPhotoPicker -
-
-extension ShoesDetailViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    
-    @IBAction func openImagePicker(_ sender: UIButton) {
-        presentImagePicker()
-    }
-    
-    private func presentImagePicker() {
-        imagePicker.delegate = self
-        imagePicker.sourceType = .photoLibrary
-        present(imagePicker, animated: true, completion: nil)
-    }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        if let pickedImage = info[.originalImage] as? UIImage {
-            shoePhotoImageView.image = pickedImage
-        }
-        dismiss(animated: true, completion: nil)
-    }
-
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        // Handle the user canceling the image picker, if needed.
-        dismiss(animated: true, completion: nil)
-    }
-}

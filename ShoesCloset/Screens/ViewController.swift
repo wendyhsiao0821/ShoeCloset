@@ -9,8 +9,8 @@ import UIKit
 import CoreData
 
 class ClosetViewController: UITableViewController {
-
-
+    
+    
     @IBOutlet weak var addButton: UIBarButtonItem!
     @IBOutlet var periodButton: UIButton!
     
@@ -21,7 +21,7 @@ class ClosetViewController: UITableViewController {
     var newShoeItem: String?
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var periodState: String?
-
+    
     
     //Computed properties
     var menuItems: [UIAction] {
@@ -45,7 +45,7 @@ class ClosetViewController: UITableViewController {
     }
     
     
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,16 +53,18 @@ class ClosetViewController: UITableViewController {
         
         configureButtonMenu()
         
+        self.navTitle.title = "All time"
+        
         let nib = UINib(nibName: "ShoeTableViewCell", bundle: nil) //設定Cell nib
         tableView.register(nib, forCellReuseIdentifier: "ShoeTableViewCell") //register Cell nib
         
-//        let image = UIImage(systemName: "calendar")
-//        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector())
-
+        //        let image = UIImage(systemName: "calendar")
+        //        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector())
+        
         reloadClosetData()
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//            self.sortingList()
-//        }
+        //        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        //            self.sortingList()
+        //        }
     }
     
     
@@ -71,17 +73,18 @@ class ClosetViewController: UITableViewController {
     func configureButtonMenu() {
         
         periodButton.menu = demoMenu
-//        periodButton.setImage(UIImage(systemName: "calendar"), for: .normal)
+        //        periodButton.setImage(UIImage(systemName: "calendar"), for: .normal)
         periodButton.showsMenuAsPrimaryAction = true
     }
     
     func getLogCountForDateRange(item: Item, daysBeforeToday: Int) -> Int {
         let calendar = Calendar.current //當前日曆
-
+        
         // 設定篩選日期範圍
-        let dateFrom = calendar.startOfDay(for: Date()) // 今天 00:00:00
+        let now = Date()
+        let dateFrom = now// 今天 00:00:00
         let dateTo = calendar.date(byAdding: .day, value: -daysBeforeToday, to: dateFrom) // 過去 daysBeforeToday 天
-
+        
         // 確保 dateTo 有值
         guard let dateTo = dateTo else { return 0 }
         
@@ -92,7 +95,7 @@ class ClosetViewController: UITableViewController {
             NSPredicate(format: "logDate >= %@", dateTo as NSDate),
             NSPredicate(format: "logDate < %@", dateFrom as NSDate)
         ])
-
+        
         do {
             let filteredLogs = try context.fetch(fetchRequest)
             return filteredLogs.count
@@ -102,13 +105,13 @@ class ClosetViewController: UITableViewController {
         }
     }
     
-
+    
     var demoMenu: UIMenu {
         return UIMenu(title: "Days before today", image: nil, identifier: nil, options: [], children: menuItems)
     }
     
     func periodMenuAction(days: String) {
-        self.navTitle.title = "My Closet | " + days
+        self.navTitle.title = days
         self.periodState = days
         self.reloadClosetData()
     }
@@ -124,7 +127,7 @@ class ClosetViewController: UITableViewController {
     
     @objc func reloadClosetData() { // for the notificationCenter observer
         loadItems()
-        tableView.reloadData() 
+        tableView.reloadData()
     }
     
     deinit {
@@ -140,7 +143,7 @@ class ClosetViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "ShoeTableViewCell", for: indexPath) as! ShoeTableViewCell
-            // 從 `shoeArray` 中取出對應的 `Item`
+        // 從 `shoeArray` 中取出對應的 `Item`
         let shoe = shoeArray[indexPath.row]
         
         
@@ -164,11 +167,13 @@ class ClosetViewController: UITableViewController {
         }
         
         
-        if let data = shoe.shoeImage {
-            if let image = UIImage(data: data) {
-                cell.shoeImageView.image = image
-            }
+        cell.shoeImageView.image = nil  // 先清空圖片，避免顯示錯誤的殘留圖片
+        if let data = shoe.shoeImage, let image = UIImage(data: data) {
+            cell.shoeImageView.image = image
+        } else {
+            cell.shoeImageView.image = UIImage(named: "defaultShoe")
         }
+        
         cell.shoeImageView.layer.cornerRadius = 5
         
         return cell
@@ -185,7 +190,7 @@ class ClosetViewController: UITableViewController {
         tableView.reloadData()
     }
     
-
+    
     
     //MARK: - TableView Delegate Methods
     
@@ -202,36 +207,36 @@ class ClosetViewController: UITableViewController {
     //MARK: - Swipe to delete
     
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-      return true
+        return true
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-
+        
         if editingStyle == .delete {
-        context.delete(shoeArray[indexPath.row])
-        shoeArray.remove(at: indexPath.row)
-          
-        saveItems()
-      }
+            context.delete(shoeArray[indexPath.row])
+            shoeArray.remove(at: indexPath.row)
+            
+            saveItems()
+        }
     }
     
-   
+    
     // MARK: - Move to Add New Shoes Page
-
+    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         performSegue(withIdentifier: "addNewSegue", sender: self)
-
+        
     }
-
+    
     
     // MARK: - Model Manupulation Methods
-
+    
     func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
         let sortDescriptor = NSSortDescriptor(key: "shoeTitle", ascending: true)
-//        if let additionalPredicate = predicate {
-//            request.predicate = additionalPredicate
-//           
-//        }
+        //        if let additionalPredicate = predicate {
+        //            request.predicate = additionalPredicate
+        //
+        //        }
         request.sortDescriptors = [sortDescriptor]
         do {
             shoeArray = try context.fetch(request)
@@ -239,21 +244,21 @@ class ClosetViewController: UITableViewController {
         } catch {
             print("Error fetching data from context: \(error)")
         }
-
+        
         tableView.reloadData()
     }
     
     func saveItems() {
         
         do {
-           try context.save()
+            try context.save()
         } catch {
             print("Error saving context \(error)")
         }
         
         self.tableView.reloadData()
     }
-
+    
     //MARK: - Shoes Detail Data
     
     func dateToString(dateDate: Date) -> String {
@@ -264,40 +269,39 @@ class ClosetViewController: UITableViewController {
         
         return formattedDate
     }
-
+    
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShoesDetailSegue" {
             var stringDate: String?
-              
-            let destinationVC = segue.destination as! ShoesDetailViewController
-            if let selectedIndex = tableView.indexPathForSelectedRow?.row {
-                destinationVC.detailBrand = shoeArray[selectedIndex].brand
-                destinationVC.detailSeries = shoeArray[selectedIndex].series
-                destinationVC.detailColorway = shoeArray[selectedIndex].colorway
-
-                stringDate = dateToString(dateDate: shoeArray[selectedIndex].purchaseDate ?? Date()) // TODO: change default to if let unwrap
-                destinationVC.detailPurchaseDate = stringDate
-                
-                destinationVC.detailTitle = shoeArray[selectedIndex].shoeTitle
-                destinationVC.selectedItem = shoeArray[selectedIndex]
-             
-                if let data = shoeArray[selectedIndex].shoeImage {
-                    if let image = UIImage(data: data) {
-                        destinationVC.shoeImage = image
-                    }
-                }
-//                if let indexPath = tableView.indexPathForSelectedRow {
-//                    destinationVC.selectedItem = shoeArray[indexPath.row]
-                    
-                }
             
+            if let navController = segue.destination as? UINavigationController, //TERRY
+               let destinationVC = navController.topViewController as? ShoesDetailViewController { //TERRY
+                if let selectedIndex = tableView.indexPathForSelectedRow?.row {
+                    destinationVC.detailBrand = shoeArray[selectedIndex].brand
+                    destinationVC.detailSeries = shoeArray[selectedIndex].series
+                    destinationVC.detailColorway = shoeArray[selectedIndex].colorway
+                    
+                    stringDate = dateToString(dateDate: shoeArray[selectedIndex].purchaseDate ?? Date()) // TODO: change default to if let unwrap
+                    destinationVC.detailPurchaseDate = stringDate
+                    destinationVC.editPurchaseDate = shoeArray[selectedIndex].purchaseDate
+                    
+                    destinationVC.detailTitle = shoeArray[selectedIndex].shoeTitle
+                    destinationVC.selectedItem = shoeArray[selectedIndex]
+                    
+                    if let data = shoeArray[selectedIndex].shoeImage {
+                        if let image = UIImage(data: data) {
+                            destinationVC.shoeImage = image
+                        }
+                    }
+                    //                if let indexPath = tableView.indexPathForSelectedRow {
+                    //
+                }
             }
         }
-    
-    
     }
-    
+}
+
 
 extension ClosetViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
@@ -315,11 +319,11 @@ extension ClosetViewController: UIImagePickerControllerDelegate, UINavigationCon
         return nil
     }
 }
-    
 
-    
 
-    
+
+
+
 
 
 

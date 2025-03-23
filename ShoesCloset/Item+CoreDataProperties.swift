@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import UIKit
 
 
 extension Item {
@@ -16,6 +17,7 @@ extension Item {
         return NSFetchRequest<Item>(entityName: "Item")
     }
 
+    @NSManaged public var id: UUID
     @NSManaged public var brand: String?
     @NSManaged public var colorway: String?
     @NSManaged public var purchaseDate: Date?
