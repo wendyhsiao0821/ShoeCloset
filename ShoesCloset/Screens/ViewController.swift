@@ -273,7 +273,7 @@ class ClosetViewController: UITableViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShoesDetailSegue" {
-            var stringDate: String?
+            var stringDate: String? //String
             
             if let navController = segue.destination as? UINavigationController, //TERRY
                let destinationVC = navController.topViewController as? ShoesDetailViewController { //TERRY
