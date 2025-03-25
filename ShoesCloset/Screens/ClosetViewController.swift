@@ -137,8 +137,32 @@ class ClosetViewController: UITableViewController {
     //MARK: - TableView Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        //        var numberOfSections: Int
+        
+        if shoeArray.count > 0 {
+            tableView.backgroundView = nil
+        } else {
+            let noDataLabel: UILabel  = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
+            let noDataImageView = UIImageView(image: UIImage(named: "noDataImage"))
+            
+            let stackView = UIStackView(arrangedSubviews: [noDataImageView, noDataLabel])
+            stackView.axis = .vertical
+            stackView.spacing = 10
+            stackView.alignment = .center
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+
+            tableView.backgroundView = stackView
+            NSLayoutConstraint.activate([
+                stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            ])
+            
+            noDataLabel.text = "I don't have any shoes now 😕"
+            noDataLabel.textColor = .systemGray
+        }
         return shoeArray.count
     }
+    
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
@@ -273,8 +297,8 @@ class ClosetViewController: UITableViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ShoesDetailSegue" {
-            var stringDate: String? //String
-            //ABC
+            var stringDate: String? 
+            
             if let navController = segue.destination as? UINavigationController, //TERRY
                let destinationVC = navController.topViewController as? ShoesDetailViewController { //TERRY
                 if let selectedIndex = tableView.indexPathForSelectedRow?.row {

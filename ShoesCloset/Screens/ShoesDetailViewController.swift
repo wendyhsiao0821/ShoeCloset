@@ -12,7 +12,7 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
     
     @IBOutlet var logTableView: UITableView!
     @IBOutlet var shoePhotoImageView: UIImageView!
-    ///frhufhrufhurfh
+
     var logArray: [Log] = []
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -117,6 +117,18 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
     //MARK: UITableViewDataSource Methods -
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if logArray.count > 0 {
+            tableView.backgroundView = nil
+        } else {
+            let noDataLabel: UILabel  = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
+
+            tableView.backgroundView = noDataLabel
+            
+            noDataLabel.text = "No history of wearing it."
+            noDataLabel.textColor = .systemGray
+            noDataLabel.textAlignment = .center
+            
+        }
         return logArray.count
     }
     
