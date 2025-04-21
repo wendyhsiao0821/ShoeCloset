@@ -74,6 +74,9 @@ class ShoeItemTableViewCell: UITableViewCell {
             $0.translatesAutoresizingMaskIntoConstraints = false
             containerView.addSubview($0)
         }
+        
+        shoeCellImageView.contentMode = .scaleAspectFit
+        shoeCellImageView.clipsToBounds = true
 
         wornCountLabel.textAlignment = .right
         wornCountLabel.textColor = UIColor(hex: "F2771F")
@@ -83,8 +86,12 @@ class ShoeItemTableViewCell: UITableViewCell {
         wornCountTitleLabel.textColor = .systemGray3
         
         upperTitleLabel.font = UIFont.boldSystemFont(ofSize: 17)
+        upperTitleLabel.adjustsFontSizeToFitWidth = true
+        upperTitleLabel.minimumScaleFactor = 0.5
         
         colorTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+        colorTitleLabel.adjustsFontSizeToFitWidth = true
+        colorTitleLabel.minimumScaleFactor = 0.5
         
         shoeCellImageView.translatesAutoresizingMaskIntoConstraints = false
         upperTitleLabel.translatesAutoresizingMaskIntoConstraints = false

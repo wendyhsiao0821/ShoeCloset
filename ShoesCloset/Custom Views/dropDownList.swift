@@ -39,6 +39,7 @@ class dropDownList {
         
         //button appearance
         button.setTitle("Select Period", for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 12, weight: .light)
         
         button.setTitleColor(.darkGray, for: .normal)
         button.backgroundColor = .white

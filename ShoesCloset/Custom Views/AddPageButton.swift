@@ -26,11 +26,14 @@ class AddPageButton: UIButton {
     func configure() {
         configuration = .plain()
         translatesAutoresizingMaskIntoConstraints = false
+        
     }
     
     func set(image: String, color: String) {
         
-        self.setImage(UIImage(systemName: image), for: .normal)
+        let boldConfig = UIImage.SymbolConfiguration(weight: .semibold)
+
+        self.setImage(UIImage(systemName: image, withConfiguration: boldConfig), for: .normal)
         self.tintColor = UIColor(hex: color)
 //        self.tintColor = UIColor(hex: "F2771F", alpha: 1)
     }
