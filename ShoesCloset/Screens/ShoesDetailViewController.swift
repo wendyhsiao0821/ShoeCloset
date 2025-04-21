@@ -55,12 +55,12 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
                     action: #selector(dismissModal)
                     )
         
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-                    title: "Edit",
-                    style: .done,
-                    target: self,
-                    action: #selector(performEditShoeSegue)
-                    )
+//        navigationItem.leftBarButtonItem = UIBarButtonItem(
+//                    title: "Edit",
+//                    style: .done,
+//                    target: self,
+//                    action: #selector(performEditShoeSegue)
+//                    )
 
         
         brandLabel.text = detailBrand
@@ -72,7 +72,7 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
         logTableView.delegate = self
         logTableView.register(UITableViewCell.self, forCellReuseIdentifier: "logCell")
         
-        
+        setUpDateRange()
 //        logTableView.reloadData()
         loadLog()
     }
@@ -184,6 +184,13 @@ class ShoesDetailViewController: UIViewController, UITableViewDataSource, UITabl
 //            print("Error: selectedItem is nil")
         }
     }
+    
+    
+    func setUpDateRange() {
+        datePicker.minimumDate = selectedItem?.purchaseDate
+        datePicker.maximumDate = Date()
+    }
+    
     
     //MARK: Swipe to delete log -
     
