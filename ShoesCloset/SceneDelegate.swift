@@ -13,17 +13,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-
-//        guard let _ = (scene as? UIWindowScene) else { return }
         
         guard let windowScene = (scene as? UIWindowScene) else { return }
-
-        let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = MainVCNew() // 👈 這裡要設你的 VC
-        self.window = window
-        window.makeKeyAndVisible()
+        
+        window = UIWindow(frame: windowScene.coordinateSpace.bounds)
+        window?.windowScene = windowScene
+        window?.rootViewController = UINavigationController(rootViewController: MainVCNew())
+        window?.makeKeyAndVisible()
+        
+        configureNavigationBar()
     }
-
+        
+        
+    func configureNavigationBar() {
+        UINavigationBar.appearance().tintColor = UIColor(hex: "F2771F")
+    }
+    
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
         // This occurs shortly after the scene enters the background, or when its session is discarded.

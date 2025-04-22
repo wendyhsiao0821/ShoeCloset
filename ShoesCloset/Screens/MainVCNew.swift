@@ -29,6 +29,23 @@ class MainVCNew: UIViewController {
     }
     
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: true)
+        
+        reloadClosetData()
+    }
+    
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: true)
+    }
+    
+   
+    
+    // MARK: - drop down list
+    
     func setUpDropDown() {
         dropdown.configure()
         
@@ -43,6 +60,7 @@ class MainVCNew: UIViewController {
         ])
     }
     
+  // MARK: - add button
     
     func setUpAddButton() {
         let addButton = AddPageButton(imageName: "plus.circle", imageColor: "F2771F")
@@ -57,8 +75,19 @@ class MainVCNew: UIViewController {
             addButton.widthAnchor.constraint(equalToConstant: 28),
             addButton.heightAnchor.constraint(equalToConstant: 28)
         ])
+        
+        addButton.addTarget(self, action: #selector(pushAddPageVC), for: .touchUpInside)
     }
     
+    
+    @objc func pushAddPageVC() {
+        guard navigationController?.topViewController == self else { return }
+            let addPageVC = AddPageVC()
+            navigationController?.pushViewController(addPageVC, animated: true)
+        }
+    
+    
+    // MARK: - itemTableView
     
     func configureTableView() {
         view.addSubview(itemTableView)
@@ -82,7 +111,6 @@ class MainVCNew: UIViewController {
 }
 
 
-// MARK: - itemTableView Data Source
 extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let shoe = shoeArray[indexPath.row]
@@ -151,11 +179,8 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
 
 
 // MARK: - Model Manupulation Methods
+
 extension MainVCNew {
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        reloadClosetData()
-    }
     
     @objc func reloadClosetData() { // for the notificationCenter observer
         loadItems()
