@@ -8,20 +8,21 @@
 import UIKit
 import CoreData
 
-class MainVCNew: UIViewController {
+class MainVCNew: UIViewController, dropDownListDelegate, detailDoneDelegate {
     
-    let dropdown = dropDownList()
+    let dropdown = DropDownList()
     let itemTableView = UITableView()
     
     var shoeArray: [Item] = []
     var newShoeItem: String?
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var periodState: String? = "All time" //記得刪掉 TODO: set up dropdown list action & change periodState
+    var periodState: String?
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(hex: "F3F3F3", alpha: 1)
+        
         
         setUpDropDown()
         setUpAddButton()
@@ -42,11 +43,11 @@ class MainVCNew: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: true)
     }
     
-   
     
     // MARK: - drop down list
     
     func setUpDropDown() {
+        dropdown.delegate = self
         dropdown.configure()
         
         view.addSubview(dropdown.button)
@@ -60,12 +61,21 @@ class MainVCNew: UIViewController {
         ])
     }
     
+    
+    func editPeriodState(state: String) {
+        periodState = state
+        
+        DispatchQueue.main.async {
+            self.itemTableView.reloadData()
+        }
+    }
+    
   // MARK: - add button
     
     func setUpAddButton() {
         let addButton = AddPageButton(imageName: "plus.circle", imageColor: "F2771F")
         view.addSubview(addButton)
-        
+         
         itemTableView.backgroundColor = .clear
         
         addButton.translatesAutoresizingMaskIntoConstraints = false
@@ -81,7 +91,9 @@ class MainVCNew: UIViewController {
     
     
     @objc func pushAddPageVC() {
+
         guard navigationController?.topViewController == self else { return }
+        
             let addPageVC = AddPageVC()
             navigationController?.pushViewController(addPageVC, animated: true)
         }
@@ -96,18 +108,20 @@ class MainVCNew: UIViewController {
         itemTableView.dataSource = self
         
         itemTableView.separatorStyle = .none
-        
         itemTableView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             itemTableView.topAnchor.constraint(equalTo: dropdown.button.bottomAnchor, constant: 16),
-            itemTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            itemTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            itemTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
+            itemTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
             itemTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16)
         ])
         
         itemTableView.register(ShoeItemTableViewCell.self, forCellReuseIdentifier: ShoeItemTableViewCell.reuseID)
     }
+    
+    
+    
 }
 
 
@@ -130,21 +144,27 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
         if periodState == "7 days" {
             let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 7)
             CellLogCount = logCount
+            
         } else if periodState == "30 days" {
             let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 30)
             CellLogCount = logCount
+            
         } else if periodState == "90 days" {
             let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 90)
             CellLogCount = logCount
+            
         } else if periodState == "180 days" {
             let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 180)
             CellLogCount = logCount
+            
         } else {
             let logCount = shoe.logs?.count
             CellLogCount = logCount ?? 0
         }
         
         cell.setUpCell(image: image, brand: shoe.brand ?? "Empty brand", series: shoe.series ?? "Empty series", colorway: shoe.colorway ?? "Empty colorway", count: CellLogCount)
+        
+        cell.selectionStyle = .none
 
         return cell
     }
@@ -174,9 +194,82 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
         }
         return shoeArray.count
     }
+    
+    
+     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+         
+        let selectedShoe = shoeArray[indexPath.row]
+        
+        let detailVC = ShoeDetailVC()
+         
+         detailVC.delegate = self
+        
+        detailVC.detailBrand = selectedShoe.brand
+        detailVC.detailSeries = selectedShoe.series
+        detailVC.detailColorway = selectedShoe.colorway
+        
+        if let purchaseDate = selectedShoe.purchaseDate {
+            detailVC.detailPurchaseDate = dateToString(dateDate: purchaseDate)
+            detailVC.editPurchaseDate = purchaseDate
+        } else {
+            detailVC.detailPurchaseDate = nil
+            detailVC.editPurchaseDate = nil
+        }
+        
+        detailVC.detailTitle = selectedShoe.shoeTitle
+        detailVC.selectedItem = selectedShoe
+        
+        if let data = selectedShoe.shoeImage,
+           let image = UIImage(data: data) {
+            detailVC.shoeImage = image
+        }
+
+        let navController = UINavigationController(rootViewController: detailVC)
+//        present(navController, animated: true, completion: nil)
+         navController.modalPresentationStyle = .automatic
+         navController.isModalInPresentation = true
+         present(navController, animated: true, completion: nil)
+         
+         
+         
+    }
+    
+    
+    //MARK: - Swipe to delete
+    
+//    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+//        return true
+//    }
+//    
+//    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+//        
+//        if editingStyle == .delete {
+//            context.delete(shoeArray[indexPath.row])
+//            shoeArray.remove(at: indexPath.row)
+//            
+//            saveItems()
+//        }
+//    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        let deleteAction = UIContextualAction(style: .destructive, title: "🗑️") { [weak self] (action, view, completionHandler) in
+            guard let self = self else { return }
+            
+            self.context.delete(self.shoeArray[indexPath.row])
+            self.shoeArray.remove(at: indexPath.row)
+            self.saveItems()
+            
+            completionHandler(true)
+        }
+        
+        deleteAction.backgroundColor = UIColor(hex: "F3F3F3") 
+      
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
 }
 
-
+    
 
 // MARK: - Model Manupulation Methods
 
@@ -220,23 +313,5 @@ extension MainVCNew {
 }
 
 
-// MARK: - Hex color Ext
-extension UIColor {
-    convenience init(hex: String, alpha: CGFloat = 1.0) {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        
-        if hexSanitized.hasPrefix("#") {
-            hexSanitized.remove(at: hexSanitized.startIndex)
-        }
 
-        var rgb: UInt64 = 0
-        Scanner(string: hexSanitized).scanHexInt64(&rgb)
-
-        let r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
-        let g = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
-        let b = CGFloat(rgb & 0x0000FF) / 255.0
-
-        self.init(red: r, green: g, blue: b, alpha: alpha)
-    }
-}
 

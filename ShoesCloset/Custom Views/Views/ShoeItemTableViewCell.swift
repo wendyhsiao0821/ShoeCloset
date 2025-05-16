@@ -53,9 +53,9 @@ class ShoeItemTableViewCell: UITableViewCell {
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 0),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -0),
-            containerView.heightAnchor.constraint(equalToConstant: 84)
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+//            containerView.heightAnchor.constraint(equalToConstant: 84)
         ])
     }
     
@@ -84,14 +84,20 @@ class ShoeItemTableViewCell: UITableViewCell {
         
         wornCountTitleLabel.font = .systemFont(ofSize: 9)
         wornCountTitleLabel.textColor = .systemGray3
+        wornCountTitleLabel.textAlignment = .right
         
         upperTitleLabel.font = UIFont.boldSystemFont(ofSize: 17)
         upperTitleLabel.adjustsFontSizeToFitWidth = true
-        upperTitleLabel.minimumScaleFactor = 0.5
+        upperTitleLabel.textColor = .black
+        upperTitleLabel.minimumScaleFactor = 0.75
+        upperTitleLabel.adjustsFontSizeToFitWidth = true
+        
         
         colorTitleLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         colorTitleLabel.adjustsFontSizeToFitWidth = true
-        colorTitleLabel.minimumScaleFactor = 0.5
+        colorTitleLabel.minimumScaleFactor = 0.75
+        colorTitleLabel.textColor = .black
+        colorTitleLabel.adjustsFontSizeToFitWidth = true
         
         shoeCellImageView.translatesAutoresizingMaskIntoConstraints = false
         upperTitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -107,25 +113,27 @@ class ShoeItemTableViewCell: UITableViewCell {
             
             upperTitleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 19),
             upperTitleLabel.leadingAnchor.constraint(equalTo: shoeCellImageView.trailingAnchor, constant: 16),
-            upperTitleLabel.widthAnchor.constraint(equalToConstant: 202),
-            upperTitleLabel.bottomAnchor.constraint(equalTo: colorTitleLabel.topAnchor, constant: -4),
+            upperTitleLabel.widthAnchor.constraint(equalToConstant: 180),
+//            upperTitleLabel.bottomAnchor.constraint(equalTo: colorTitleLabel.topAnchor, constant: -4),
+            upperTitleLabel.heightAnchor.constraint(equalToConstant: 22),
             
             colorTitleLabel.topAnchor.constraint(equalTo: upperTitleLabel.bottomAnchor, constant: 4),
             colorTitleLabel.leadingAnchor.constraint(equalTo: upperTitleLabel.leadingAnchor),
-            colorTitleLabel.widthAnchor.constraint(equalToConstant: 202),
-            colorTitleLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -21),
+            colorTitleLabel.widthAnchor.constraint(equalToConstant: 180),
+//            colorTitleLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -21),
+            colorTitleLabel.heightAnchor.constraint(equalToConstant: 22),
             
             wornCountTitleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 17.5),
-            wornCountTitleLabel.leadingAnchor.constraint(equalTo: upperTitleLabel.trailingAnchor),
-            wornCountTitleLabel.widthAnchor.constraint(equalToConstant: 53),
+            wornCountTitleLabel.leadingAnchor.constraint(equalTo: upperTitleLabel.trailingAnchor, constant: 0),
+//            wornCountTitleLabel.widthAnchor.constraint(equalToConstant: 53),
+            wornCountTitleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             wornCountTitleLabel.heightAnchor.constraint(equalToConstant: 22),
             
             wornCountLabel.topAnchor.constraint(equalTo: wornCountTitleLabel.bottomAnchor, constant: 3),
             wornCountLabel.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -19),
             wornCountLabel.leadingAnchor.constraint(equalTo: upperTitleLabel.trailingAnchor),
-            wornCountLabel.widthAnchor.constraint(equalToConstant: 53),
-            wornCountLabel.heightAnchor.constraint(equalToConstant: 22),
-            
+//            wornCountLabel.widthAnchor.constraint(equalToConstant: 53),
+            wornCountLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16)
         ])
         
         

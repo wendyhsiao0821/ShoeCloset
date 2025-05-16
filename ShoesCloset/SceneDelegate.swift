@@ -14,14 +14,25 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         
+        UserDefaults.standard.removeObject(forKey: "hasSeenOnboarding")
+        
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
-        window?.rootViewController = UINavigationController(rootViewController: MainVCNew())
+        
+        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
+
+        if hasSeenOnboarding {
+            window?.rootViewController = UINavigationController(rootViewController: MainVCNew()) // 或其他主畫面
+        } else {
+            window?.rootViewController = Onboarding1()
+        }
+        
         window?.makeKeyAndVisible()
         
         configureNavigationBar()
+//        guard let _ = (scene as? UIWindowScene) else { return }
     }
         
         
