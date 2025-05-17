@@ -9,6 +9,7 @@ import UIKit
 import CoreData
 
 extension AddPageVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+   
     private func presentImagePicker() {
         imagePicker.delegate = self
         imagePicker.sourceType = .photoLibrary
@@ -23,8 +24,8 @@ extension AddPageVC: UIImagePickerControllerDelegate, UINavigationControllerDele
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let pickedImage = info[.originalImage] as? UIImage {
+            addPageViewModel.updateSelectedImage(pickedImage)
             addShoePhotoImageView.image = pickedImage
-//            addShoePhotoImageView.contentMode = .scaleAspectFill
         }
         dismiss(animated: true, completion: nil)
     }
@@ -35,17 +36,5 @@ extension AddPageVC: UIImagePickerControllerDelegate, UINavigationControllerDele
     }
     
     
-    func fetchImageFromCoreData() -> UIImage? {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        
-        do {
-            if let result = try context.fetch(request).first, let imageData = result.shoeImage {
-                return UIImage(data: imageData)
-            }
-        } catch {
-            print("Failed to fetch image: \(error)")
-        }
-        return nil
-    }
 
 }

@@ -52,4 +52,9 @@ class AddPageVCViewModel {
                 onSaveFailure?("Failed to save: \(error.localizedDescription)")
             }
         }
+    
+    
+    func updateSelectedImage(_ image: UIImage) {
+        self.shoeImage = image
+    }
 }
