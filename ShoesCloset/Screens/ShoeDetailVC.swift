@@ -11,9 +11,8 @@ import CoreData
 protocol detailDoneDelegate { func reloadClosetData() }
 
 class ShoeDetailVC: UIViewController {
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-
-    var logArray: [Log] = []
+    var detailViewModel = ShoeDetailViewModel()
+    
     var logDatePicker = UIDatePicker()
     var logTableView = UITableView()
     var logAddButton = GeneralButton(buttonTitle: "Add", backgroundColor: "F2771F")
@@ -40,11 +39,11 @@ class ShoeDetailVC: UIViewController {
     var logTitleLabel = UILabel()
     
     var selectedItem : Item? {
-        didSet{
-            loadLog()
+        didSet {
+            detailViewModel.selectedItem = selectedItem
         }
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(hex: "F3F3F3")
@@ -57,17 +56,21 @@ class ShoeDetailVC: UIViewController {
         configureLogTitleLabel()
         configureLogDatePicker()
         configureLogTableView()
-        setUpDateRange()
+        detailViewModel.setUpDateRange(for: logDatePicker)
         
-        loadLog()
+        detailViewModel.onLogUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.logTableView.reloadData()
+            }
+        }
     }
     
     
     @objc func dismissModal() {
-            dismiss(animated: true, completion: nil)
-            delegate?.reloadClosetData()
-            
-        }
+        dismiss(animated: true, completion: nil)
+        delegate?.reloadClosetData()
+        
+    }
     
     
     func configureLogTableView() {
@@ -93,27 +96,12 @@ class ShoeDetailVC: UIViewController {
     }
     
     @objc func logAddButtonTapped() {
-        if let selectedItem = self.selectedItem {
-            let newLog = Log(context: context)
-            newLog.logDate = logDatePicker.date
-            newLog.parentItem = selectedItem
-            self.logArray.append(newLog)
-            self.saveItems()
-            logTableView.reloadData()
-            
-            presentGFAlertOnMainThread(title: "New log added.", message: dateToString(dateDate: newLog.logDate!), buttonTitle: "Ok")
-        }
+        detailViewModel.addLog(for: logDatePicker.date)
+        presentGFAlertOnMainThread(title: "New log added.", message: dateToString(dateDate: logDatePicker.date), buttonTitle: "Ok")
     }
     
     
-    func setUpDateRange() {
-        logDatePicker.minimumDate = selectedItem?.purchaseDate
-        logDatePicker.maximumDate = Date()
-    }
-    
-    
-    
-// MARK: - Configure shoe title label stack
+    // MARK: - Configure shoe title label stack
     
     func configureLogTitleLabel() {
         view.addSubview(logTitleLabel)
@@ -131,7 +119,7 @@ class ShoeDetailVC: UIViewController {
         ])
     }
     
-// MARK: - Configure log date picker
+    // MARK: - Configure log date picker
     func configureLogDatePicker() {
         view.addSubview(logDatePicker)
         view.addSubview(logAddButton)
@@ -157,7 +145,7 @@ class ShoeDetailVC: UIViewController {
     }
     
     
-// MARK: - Configure shoe detail labels
+    // MARK: - Configure shoe detail labels
     func configureShoeDetail() {
         view.addSubview(brandLabel)
         view.addSubview(seriesLabel)
@@ -199,22 +187,22 @@ class ShoeDetailVC: UIViewController {
             brandLabel.topAnchor.constraint(equalTo: shoeTitleLabelStack.bottomAnchor, constant: 32),
             brandLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
             brandLabel.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -6),
-//            brandLabel.heightAnchor.constraint(equalToConstant: 72),
+            //            brandLabel.heightAnchor.constraint(equalToConstant: 72),
             
             seriesLabel.topAnchor.constraint(equalTo: shoeTitleLabelStack.bottomAnchor, constant: 32),
             seriesLabel.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 6),
             seriesLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -28),
-//            seriesLabel.heightAnchor.constraint(equalToConstant: 72),
+            //            seriesLabel.heightAnchor.constraint(equalToConstant: 72),
             
             colorwayLabel.topAnchor.constraint(equalTo: brandLabel.bottomAnchor, constant: 12),
             colorwayLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
             colorwayLabel.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -6),
-//            colorwayLabel.heightAnchor.constraint(equalToConstant: 72),
+            //            colorwayLabel.heightAnchor.constraint(equalToConstant: 72),
             
             dateLabel.topAnchor.constraint(equalTo: seriesLabel.bottomAnchor, constant: 12),
             dateLabel.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 6),
             dateLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -28),
-//            dateLabel.heightAnchor.constraint(equalToConstant: 72)
+            //            dateLabel.heightAnchor.constraint(equalToConstant: 72)
         ])
     }
     
@@ -247,18 +235,18 @@ class ShoeDetailVC: UIViewController {
             label.adjustsFontSizeToFitWidth = true
             return label
         }
-
+        
         shoeTitleLabelStack.axis = .vertical
         shoeTitleLabelStack.alignment = .leading
         shoeTitleLabelStack.distribution = .fillEqually
         shoeTitleLabelStack.spacing = 0
-
+        
         let labels = [detailBrand, detailSeries, detailColorway].map { createTitleLabel(with: $0) }
         labels.forEach { shoeTitleLabelStack.addArrangedSubview($0) }
-
+        
         view.addSubview(shoeTitleLabelStack)
         shoeTitleLabelStack.translatesAutoresizingMaskIntoConstraints = false
-
+        
         NSLayoutConstraint.activate([
             shoeTitleLabelStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             shoeTitleLabelStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -267,56 +255,23 @@ class ShoeDetailVC: UIViewController {
         ])
     }
     
-
-    //MARK: Core data manipulation function TODO: refact all core data function to a class -
-    func saveItems() {
-        
-        do {
-            try context.save()
-        } catch {
-            print("Error saving context \(error)")
-        }
-        
-    }
-    
-    func loadLog(with request : NSFetchRequest<Log> = Log.fetchRequest(), predicate: NSPredicate? = nil) {
-        
-        let ItemPredicate = NSPredicate(format: "parentItem.shoeTitle MATCHES %@", selectedItem!.shoeTitle!)
-        
-        
-        if let addtionalPredicate = predicate {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [ItemPredicate, addtionalPredicate])
-        } else {
-            request.predicate = ItemPredicate
-        }
-        
-        do {
-            logArray = try context.fetch(request)
-        } catch {
-            print("Error fetching data from context \(error)")
-        }
-        
-//        logTableView.reloadData()
-    }
-
 }
-
 
 extension ShoeDetailVC: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if logArray.count > 0 {
-            tableView.backgroundView = nil
-        } else {
+        if detailViewModel.isLogEmpty {
             let noDataLabel: UILabel  = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
-
+            
             tableView.backgroundView = noDataLabel
             
             noDataLabel.text = "No history of wearing it."
             noDataLabel.textColor = .systemGray
             noDataLabel.textAlignment = .center
             
+        } else {
+            tableView.backgroundView = nil
         }
-        return logArray.count
+        return detailViewModel.logArray.count
         
     }
     
@@ -324,7 +279,7 @@ extension ShoeDetailVC: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = logTableView.dequeueReusableCell(withIdentifier: LogCell.reuseID) as! LogCell
         
-        if let log = logArray[indexPath.row].logDate {
+        if let log = detailViewModel.logArray[indexPath.row].logDate {
             cell.logDateLabel.text = dateToString(dateDate: log)
         } else {
             cell.logDateLabel.text = "No Date"
@@ -335,7 +290,7 @@ extension ShoeDetailVC: UITableViewDataSource, UITableViewDelegate {
     
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 50 
+        return 50
     }
     
     
@@ -346,22 +301,19 @@ extension ShoeDetailVC: UITableViewDataSource, UITableViewDelegate {
     
     
     
-    
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "🗑️") { [weak self] (action, view, completionHandler) in
             guard let self = self else { return }
-
-            self.context.delete(self.logArray[indexPath.row])
-            self.logArray.remove(at: indexPath.row)
-            self.saveItems()
+            
+            self.detailViewModel.deleteLog(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
             
             completionHandler(true)
         }
         
         deleteAction.backgroundColor = UIColor(hex: "F3F3F3")
-      
+        
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }
