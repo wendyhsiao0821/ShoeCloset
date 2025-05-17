@@ -11,11 +11,11 @@ protocol dropDownListDelegate {
 }
 
 enum DaysType: String, CaseIterable {
+    case allTime = "All time"
     case seven = "7 days"
     case thirty = "30 days"
     case ninety = "90 days"
     case oneEighty = "180 days"
-    case allTime = "All time"
 }
 
 
@@ -47,6 +47,7 @@ class DropDownList {
         button.backgroundColor = .white
         button.layer.cornerRadius = 10
         button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
+        
     }
     
 

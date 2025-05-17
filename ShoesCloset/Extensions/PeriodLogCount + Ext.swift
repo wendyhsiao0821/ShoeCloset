@@ -8,7 +8,7 @@
 import UIKit
 import CoreData
 
-extension MainVCNew {
+extension MainVCNewViewModel {
     func getLogCountForDateRange(item: Item, daysBeforeToday: Int) -> Int {
         let calendar = Calendar.current //當前日曆
         

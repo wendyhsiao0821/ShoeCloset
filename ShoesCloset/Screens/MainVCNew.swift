@@ -10,19 +10,23 @@ import CoreData
 
 class MainVCNew: UIViewController, dropDownListDelegate, detailDoneDelegate {
     
+    let mainViewModel = MainVCNewViewModel()
+    
     let dropdown = DropDownList()
     let itemTableView = UITableView()
-    
-    var shoeArray: [Item] = []
+
     var newShoeItem: String?
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var periodState: String?
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(hex: "F3F3F3", alpha: 1)
         
+        mainViewModel.onDataUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.itemTableView.reloadData()
+            }
+        }
         
         setUpDropDown()
         setUpAddButton()
@@ -34,7 +38,7 @@ class MainVCNew: UIViewController, dropDownListDelegate, detailDoneDelegate {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: true)
         
-        reloadClosetData()
+        mainViewModel.loadItems()
     }
     
     
@@ -63,12 +67,9 @@ class MainVCNew: UIViewController, dropDownListDelegate, detailDoneDelegate {
     
     
     func editPeriodState(state: String) {
-        periodState = state
-        
-        DispatchQueue.main.async {
-            self.itemTableView.reloadData()
-        }
+        mainViewModel.setPeriodState(state)
     }
+    
     
   // MARK: - add button
     
@@ -119,15 +120,12 @@ class MainVCNew: UIViewController, dropDownListDelegate, detailDoneDelegate {
         
         itemTableView.register(ShoeItemTableViewCell.self, forCellReuseIdentifier: ShoeItemTableViewCell.reuseID)
     }
-    
-    
-    
 }
 
 
 extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let shoe = shoeArray[indexPath.row]
+        let shoe = mainViewModel.filteredShoes[indexPath.row]
         
         let cell = itemTableView.dequeueReusableCell(withIdentifier: ShoeItemTableViewCell.reuseID) as! ShoeItemTableViewCell
         
@@ -139,28 +137,7 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
             }
         }()
         
-        var CellLogCount: Int
-        
-        if periodState == "7 days" {
-            let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 7)
-            CellLogCount = logCount
-            
-        } else if periodState == "30 days" {
-            let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 30)
-            CellLogCount = logCount
-            
-        } else if periodState == "90 days" {
-            let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 90)
-            CellLogCount = logCount
-            
-        } else if periodState == "180 days" {
-            let logCount = getLogCountForDateRange(item: shoe, daysBeforeToday: 180)
-            CellLogCount = logCount
-            
-        } else {
-            let logCount = shoe.logs?.count
-            CellLogCount = logCount ?? 0
-        }
+        let CellLogCount = mainViewModel.getLogCount(for: shoe)
         
         cell.setUpCell(image: image, brand: shoe.brand ?? "Empty brand", series: shoe.series ?? "Empty series", colorway: shoe.colorway ?? "Empty colorway", count: CellLogCount)
         
@@ -171,7 +148,7 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if shoeArray.count > 0 {
+        if mainViewModel.filteredShoes.count > 0 {
             tableView.backgroundView = nil
         } else {
             let noDataLabel: UILabel  = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.size.width, height: tableView.bounds.size.height))
@@ -192,13 +169,13 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
             noDataLabel.text = "I don't have any shoes now 😕"
             noDataLabel.textColor = .systemGray
         }
-        return shoeArray.count
+        return mainViewModel.filteredShoes.count
     }
     
     
      func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
          
-        let selectedShoe = shoeArray[indexPath.row]
+         let selectedShoe = mainViewModel.filteredShoes[indexPath.row]
         
         let detailVC = ShoeDetailVC()
          
@@ -236,29 +213,16 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
     
     
     //MARK: - Swipe to delete
-    
-//    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-//        return true
-//    }
-//    
-//    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        
-//        if editingStyle == .delete {
-//            context.delete(shoeArray[indexPath.row])
-//            shoeArray.remove(at: indexPath.row)
-//            
-//            saveItems()
-//        }
-//    }
-    
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
         let deleteAction = UIContextualAction(style: .destructive, title: "🗑️") { [weak self] (action, view, completionHandler) in
             guard let self = self else { return }
             
-            self.context.delete(self.shoeArray[indexPath.row])
-            self.shoeArray.remove(at: indexPath.row)
-            self.saveItems()
+//            mainViewModel.context.delete(mainViewModel.shoeArray[indexPath.row])
+//            self.mainViewModel.shoeArray.remove(at: indexPath.row)
+//            self.mainViewModel.saveItems()
+            
+            mainViewModel.cellDeleteMethod(indexPath: indexPath)
             
             completionHandler(true)
         }
@@ -276,42 +240,6 @@ extension MainVCNew: UITableViewDataSource, UITableViewDelegate {
 extension MainVCNew {
     
     @objc func reloadClosetData() { // for the notificationCenter observer
-        loadItems()
-        itemTableView.reloadData()
-    }
-    
-
-    
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
-        let sortDescriptor = NSSortDescriptor(key: "shoeTitle", ascending: true)
-        //        if let additionalPredicate = predicate {
-        //            request.predicate = additionalPredicate
-        //
-        //        }
-        request.sortDescriptors = [sortDescriptor]
-        do {
-            shoeArray = try context.fetch(request)
-            
-        } catch {
-            print("Error fetching data from context: \(error)")
-        }
-        
-        itemTableView.reloadData()
-    }
-    
-    
-    func saveItems() {
-        
-        do {
-            try context.save()
-        } catch {
-            print("Error saving context \(error)")
-        }
-        
-        self.itemTableView.reloadData()
+        mainViewModel.loadItems()
     }
 }
-
-
-
-
