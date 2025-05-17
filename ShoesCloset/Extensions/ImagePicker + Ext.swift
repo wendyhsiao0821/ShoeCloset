@@ -8,17 +8,10 @@
 import UIKit
 import CoreData
 
-extension AddPageVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-   
-    private func presentImagePicker() {
-        imagePicker.delegate = self
-        imagePicker.sourceType = .photoLibrary
-        present(imagePicker, animated: true, completion: nil)
-    }
-    
+extension AddPageVC {
 
     @objc func openImagePicker() {
-        presentImagePicker()
+        present(imagePicker, animated: true, completion: nil)
     }
     
     

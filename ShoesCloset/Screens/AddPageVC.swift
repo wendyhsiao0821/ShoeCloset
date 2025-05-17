@@ -8,9 +8,15 @@
 import UIKit
 import CoreData
 
-class AddPageVC: UIViewController, UITextFieldDelegate {
+class AddPageVC: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     let addPageViewModel = AddPageVCViewModel()
+    lazy var imagePicker: UIImagePickerController = {
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        picker.allowsEditing = false
+        return picker
+    }()
     
     let shoeDataStack = UIStackView()
     let purchaseDatePickerTitle = PurchaseDateTitle(titleText: "Purchase Date")
@@ -19,7 +25,7 @@ class AddPageVC: UIViewController, UITextFieldDelegate {
     let colorwayTextField = TextFieldTitle(titleText: "Colorway")
     
     let addShoePhotoImageView = ImageView(frame: .zero)
-    let imagePicker = UIImagePickerController()
+//    let imagePicker = UIImagePickerController()
     let imagePickerButton = GeneralButton(buttonTitle: "Add photo", backgroundColor: "F2771F")
     
     let saveButton = GeneralButton(buttonTitle: "Save", backgroundColor: "F2771F")
@@ -36,13 +42,12 @@ class AddPageVC: UIViewController, UITextFieldDelegate {
         configureShoeDataStack()
         configureImageView()
         configureSaveButton()
+        keyboardControl()
 
         brandTextField.textField.delegate = self
         seriesTextField.textField.delegate = self
         colorwayTextField.textField.delegate = self
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        view.addGestureRecognizer(tapGesture)
     }
     
     
@@ -53,6 +58,11 @@ class AddPageVC: UIViewController, UITextFieldDelegate {
         }
     }
     
+    
+    func keyboardControl() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
     
     // MARK: - Configure shoe data stack
     
