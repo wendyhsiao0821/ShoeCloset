@@ -10,6 +10,8 @@ import CoreData
 
 class AddPageVC: UIViewController, UITextFieldDelegate {
     
+    let addPageViewModel = AddPageVCViewModel()
+    
     let shoeDataStack = UIStackView()
     let purchaseDatePickerTitle = PurchaseDateTitle(titleText: "Purchase Date")
     let brandTextField = TextFieldTitle(titleText: "Brand")
@@ -21,8 +23,6 @@ class AddPageVC: UIViewController, UITextFieldDelegate {
     let imagePickerButton = GeneralButton(buttonTitle: "Add photo", backgroundColor: "F2771F")
     
     let saveButton = GeneralButton(buttonTitle: "Save", backgroundColor: "F2771F")
-    
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     
     override func viewDidLoad() {
@@ -136,58 +136,49 @@ class AddPageVC: UIViewController, UITextFieldDelegate {
     }
     
     @objc func saveButtonPressed() {
-        if (brandTextField.textField.text ?? "").isEmpty ||
-            (seriesTextField.textField.text ?? "").isEmpty ||
-            (colorwayTextField.textField.text ?? "").isEmpty  {
-            presentGFAlertOnMainThread(title: "Missing information", message: "Please fill in all text fields.", buttonTitle: "Ok")
-            
-        } else {
-            let newItem = Item(context: context)
-            
-            newItem.shoeTitle = getShoesItemTitle()
-            newItem.brand = brandTextField.textField.text
-            newItem.series = seriesTextField.textField.text
-            newItem.colorway = colorwayTextField.textField.text
-            newItem.purchaseDate = purchaseDatePickerTitle.datePicker.date
-            newItem.id = UUID()
-            
-            if let imageData = addShoePhotoImageView.image?.jpegData(compressionQuality: 1.0) {
-                newItem.shoeImage = imageData
-            } else {
-                print("no image data alert")
-            }
-            saveItems()
-            
-            navigationController?.popViewController(animated: true)
-        }
-    }
-    
-    
-    //MARK: - Data methods
-    
-    func saveItems() {
+//        if (brandTextField.textField.text ?? "").isEmpty ||
+//            (seriesTextField.textField.text ?? "").isEmpty ||
+//            (colorwayTextField.textField.text ?? "").isEmpty  {
+//            presentGFAlertOnMainThread(title: "Missing information", message: "Please fill in all text fields.", buttonTitle: "Ok")
+//            
+//        } else {
+//            let newItem = Item(context: context)
+//            
+//            newItem.shoeTitle = getShoesItemTitle()
+//            newItem.brand = brandTextField.textField.text
+//            newItem.series = seriesTextField.textField.text
+//            newItem.colorway = colorwayTextField.textField.text
+//            newItem.purchaseDate = purchaseDatePickerTitle.datePicker.date
+//            newItem.id = UUID()
+//            
+//            if let imageData = addShoePhotoImageView.image?.jpegData(compressionQuality: 1.0) {
+//                newItem.shoeImage = imageData
+//            } else {
+//                print("no image data alert")
+//            }
+//            saveItems()
         
-        do {
-            try context.save()
-        } catch {
-            print("Error saving context \(error)")
-        }
-    }
-    
+        addPageViewModel.brand = brandTextField.textField.text ?? ""
+        addPageViewModel.series = seriesTextField.textField.text ?? ""
+        addPageViewModel.colorway = colorwayTextField.textField.text ?? ""
+        addPageViewModel.purchaseDate = purchaseDatePickerTitle.datePicker.date
+        addPageViewModel.shoeImage = addShoePhotoImageView.image
 
-    func getShoesItemTitle() -> String {
-        let brand = brandTextField.textField.text ?? "Unknown Brand"
-        let series = seriesTextField.textField.text ?? "Unknown Series"
-        let colorway = colorwayTextField.textField.text ?? "Unknown Colorway"
-        
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium // 自訂日期格式，例如：Jan 21, 2025
-        formatter.timeStyle = .none  // 不顯示時間
-        
-        let combinedString = "\(brand) \(series) \(colorway)"
-        
-        return combinedString
+        addPageViewModel.onSaveSuccess = { [weak self] in
+                DispatchQueue.main.async {
+                    self?.navigationController?.popViewController(animated: true)
+                }
+            }
+
+        addPageViewModel.onSaveFailure = { [weak self] message in
+                DispatchQueue.main.async {
+                    self?.presentGFAlertOnMainThread(title: "Missing Information", message: message, buttonTitle: "Ok")
+                }
+            }
+
+        addPageViewModel.saveShoe()
     }
+    
     
     @objc func dismissKeyboard() {
         view.endEditing(true)

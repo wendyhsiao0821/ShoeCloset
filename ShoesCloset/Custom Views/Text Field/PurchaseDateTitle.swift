@@ -8,8 +8,6 @@
 import UIKit
 
 class PurchaseDateTitle: UIView {
-
-    
     let titleLabel = UILabel()
     let datePicker = UIDatePicker()
     
